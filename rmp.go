@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 
@@ -53,6 +54,8 @@ func main() {
 	}
 	defer db.Close()
 
+	timeStartDBload := time.Now()
+	logger.Println(timeStartDBload.Local())
 	// Connect and check the server version
 	var version string
 	db.QueryRow("SELECT VERSION()").Scan(&version)
@@ -76,7 +79,8 @@ func main() {
 	r := csv.NewReader(strings.NewReader(string(b)))
 	r.Comma = ';'
 	var sql_str string
-	count := 0
+	countInsert := 0
+	countUpdate := 0
 	for {
 		record, err := r.Read()
 		if err == io.EOF {
@@ -86,30 +90,63 @@ func main() {
 			logger.Fatal(err)
 		}
 
-		//		fmt.Printf(fmt.Sprintf("%12s | %30s | %50s | %20s | %8s", record[0], record[1], record[2], record[3], record[4]))
 		var id uint64
 		i, err := strconv.ParseInt(record[4], 10, 64)
 		if err == nil {
 			sql_find_id := fmt.Sprintf("select `id` from `usr` where `lich_id`=%d", i)
 			err2 := db.QueryRow(sql_find_id).Scan(&id)
 			if err2 != nil {
-				count += 1
-				sql_str = fmt.Sprintf("INSERT INTO usr (username, password, personal_account, address, fio, contact, lich_id)" +
-					" VALUES (?, ?, ?, ?, ?, ?, ?);\n")
+				// INSERT into table_name
+				// [(column1, [, column2] ...)]
+				// values (values_list)
+
+				countInsert += 1
+				sql_str = fmt.Sprintf("INSERT INTO usr " +
+					"(username, password, personal_account, address, fio, contact, lich_id)" +
+					" VALUES (?, ?, ?, ?, ?, ?, ?);")
 				stmt, err := db.Prepare(sql_str)
 				if err == nil {
 					_, err = stmt.Exec(record[0], record[0], record[0], record[1], record[2], record[3], i)
 					if err != nil {
-						log.Fatal(err)
+						logger.Fatal(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					log.Fatal(err)
+					logger.Fatal(err)
+					panic(err)
+				}
+			} else {
+				// UPDATE [table] table_name
+				// SET column1 = value1, column2 = value2, ...
+				// [WHERE condition]
+				// [ORDER BY expression [ ASC | DESC ]]
+				// [LIMIT number_rows];
+
+				countUpdate += 1
+				sql_str = fmt.Sprint("UPDATE usr " +
+					"SET username=?, password=?, personal_account=?, address=?, fio=?, contact=?, lich_id=? " +
+					"WHERE id=?;")
+				stmt, err := db.Prepare(sql_str)
+				if err == nil {
+					_, err = stmt.Exec(record[0], record[0], record[0], record[1], record[2], record[3], i, id)
+					if err != nil {
+						logger.Fatal(err)
+						panic(err)
+					}
+					stmt.Close()
+				} else {
+					logger.Fatal(err)
 					panic(err)
 				}
 			}
 		}
 	}
+	logger.Println("Insert: ", countInsert)
+	logger.Println("Update: ", countUpdate)
+
 	db.Close()
+
+	logger.Println(time.Until(timeStartDBload))
+	logger.Println("Database closed")
 }
