@@ -21,14 +21,15 @@ import (
 )
 
 type Config struct {
-	server_string   string
-	port_string     string
-	login_string    string
-	pass_string     string
-	path_string     string
-	database_string string
-	user_string     string
-	meter_string    string
+	server_string     string
+	port_string       string
+	login_string      string
+	pass_string       string
+	path_string       string
+	database_string   string
+	user_string       string
+	meter_string      string
+	indication_string string
 }
 
 type Runner struct {
@@ -38,8 +39,6 @@ type Runner struct {
 
 var config Config
 var runner Runner
-
-// , , indication string
 
 func main() {
 	cfg, err := ini.Load("rmp.ini")
@@ -59,10 +58,10 @@ func main() {
 	config.database_string = cfg.Section("").Key("database").String()
 	config.user_string = cfg.Section("").Key("user").String()
 	config.meter_string = cfg.Section("").Key("meter").String()
-	//indication = cfg.Section("").Key("indication").String()
+	config.indication_string = cfg.Section("").Key("indication").String()
 
 	// Create the database handle, confirm driver is present
-	connect_string := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s",
+	connect_string := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?parseTime=true",
 		config.login_string, config.pass_string, config.server_string, config.database_string)
 	runner.db, err = sql.Open("mysql", connect_string)
 	if err != nil {
@@ -74,6 +73,7 @@ func main() {
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/usr/", usrHandler)
 	http.HandleFunc("/meter/", meterHandler)
+	http.HandleFunc("/indication/", indicationHandler)
 
 	// Connect and check the server version
 	var version string
@@ -154,9 +154,43 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func indicationHandler(w http.ResponseWriter, r *http.Request) {
+	rows, err := runner.db.Query("SELECT " +
+		"data, tz, date, vid_en, device_id " +
+		"FROM indication")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	fmt.Fprintf(w, "Table Indication:")
+	count := 0
+	for rows.Next() {
+		var tz, vid_en string
+		var device_id int64
+		var date time.Time
+		var data float64
+		err := rows.Scan(&data, &tz, &date, &vid_en, &device_id)
+		if err != nil {
+			runner.logger.Println(err)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		count += 1
+		fmt.Fprintf(w, "%f,%s,%s,%s,%d\n",
+			data, tz, date.Format(time.DateOnly), vid_en, device_id)
+	}
+	if err = rows.Err(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func loadAll() {
-	//loadUsr()
+	loadUsr()
 	loadMeterDevece()
+	loadIndication()
 }
 
 func loadUsr() {
@@ -219,7 +253,6 @@ func loadUsr() {
 					panic(err)
 				}
 			} else {
-				continue
 				// UPDATE [table] table_name
 				// SET column1 = value1, column2 = value2, ...
 				// [WHERE condition]
@@ -302,7 +335,7 @@ func loadMeterDevece() {
 			sql_find_id := fmt.Sprintf("select id from usr where lich_id=%d", lich_id)
 			err2 := runner.db.QueryRow(sql_find_id).Scan(&usr_id)
 			if err2 != nil {
-				runner.logger.Printf("For meter device $d not found user $d\n", meter_id, lich_id)
+				runner.logger.Printf("For meter device %d not found user %d\n", meter_id, lich_id)
 				continue
 			}
 			sql_find_meter := fmt.Sprintf("select id from meterdevice where meter_id=%d", meter_id)
@@ -332,4 +365,98 @@ func loadMeterDevece() {
 	runner.logger.Println("Meter devices insert: ", countInsert)
 	runner.logger.Println(time.Until(timeStartDBload))
 	runner.logger.Println("Meter devices load")
+}
+
+func loadIndication() {
+	/*
+		`indication`
+			`id` BIGINT(20),
+			`data` VARCHAR(13),
+			`tz` VARCHAR(9),
+			`date` DATE,
+			`vid_en` VARCHAR(5),
+			`device_id` BIGINT(20),
+
+			id, data, tz, date, vid_en, device_id
+	*/
+	timeStartDBload := time.Now()
+	runner.logger.Printf("Start indication load: %s", timeStartDBload.Local())
+
+	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.indication_string)
+	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
+	if err != nil {
+		runner.logger.Fatal(err)
+	}
+	defer f.Close()
+
+	decoder := charmap.Windows1251.NewDecoder()
+	reader := decoder.Reader(f)
+	b, err := io.ReadAll(reader)
+	if err != nil {
+		runner.logger.Panic(err)
+		panic(err)
+	}
+
+	r := csv.NewReader(strings.NewReader(string(b)))
+	r.Comma = ';'
+	var sql_str string
+	countInsert := 0
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			runner.logger.Fatal(err)
+		}
+
+		var meter_id, id uint64
+		meter_id, _ = strconv.ParseUint(record[4], 10, 64)
+		var data, _ = strconv.ParseFloat(record[0], 64)
+		var dateList = strings.Split(record[2], ".")
+		var year, _ = strconv.ParseInt(dateList[2], 10, 64)
+		var month, _ = strconv.ParseInt(dateList[1], 10, 64)
+		var day, _ = strconv.ParseInt(dateList[0], 10, 64)
+		var date = time.Date(int(year), time.Month(month), int(day), 0, 0, 1, 0, time.UTC)
+		if err == nil {
+			sql_find_id := fmt.Sprintf("select id from meterdevice where meter_id=%d", meter_id)
+			err2 := runner.db.QueryRow(sql_find_id).Scan(&id)
+			if err2 != nil {
+				runner.logger.Printf("For indication of meter device %d not found device %d\n", meter_id, id)
+				continue
+			} else {
+				y, m, d := date.Date()
+				sql_find_id := fmt.Sprintf("select id from indication where date='%v-%v-%v' "+
+					"and device_id=%d and tz='%s'",
+					y, int(m), d, id, record[2])
+				err3 := runner.db.QueryRow(sql_find_id).Scan(&meter_id)
+				if err3 == nil {
+					runner.logger.Printf("Indication of date %v of meter device %d already found\n",
+						date,
+						meter_id)
+					continue
+				} else {
+					countInsert += 1
+					sql_str = fmt.Sprintf("INSERT INTO indication " +
+						"(data, tz, date, vid_en, device_id)" +
+						" VALUES (?, ?, ?, ?, ?);")
+					stmt, err := runner.db.Prepare(sql_str)
+					if err == nil {
+						_, err = stmt.Exec(data, record[1], date, record[3], id)
+						if err != nil {
+							runner.logger.Fatal(err)
+							panic(err)
+						}
+						stmt.Close()
+					} else {
+						runner.logger.Fatal(err)
+						panic(err)
+					}
+				}
+			}
+		}
+	}
+	runner.logger.Println("Indications insert: ", countInsert)
+	runner.logger.Println(time.Until(timeStartDBload))
+	runner.logger.Println("Indications load")
 }
