@@ -1,2 +1,4 @@
 rpm.log
 go.sum
+*.exe
+*.log

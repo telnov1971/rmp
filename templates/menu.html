@@ -1,0 +1,25 @@
+<!--menu.html-->
+
+<nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">
+        Показания приборов учёта
+      </a>
+    </div>
+    <ul class="nav navbar-nav">
+      {{ if .is_logged_in }}
+        <!--Display this link only when the user is not logged in-->
+        <li><a href="/u/register">Смена пароля</a></li>
+      {{end}} 
+      {{ if not .is_logged_in }}
+        <!--Display this link only when the user is not logged in-->
+        <li><a href="/u/login">Вход</a></li>
+      {{end}} 
+      {{ if .is_logged_in }}
+        <!--Display this link only when the user is logged in-->
+        <li><a href="/u/logout">Выход</a></li>
+      {{end}}
+    </ul>
+  </div>
+</nav>

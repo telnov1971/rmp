@@ -16,6 +16,7 @@ import (
 
 	//	"golang.org/x/crypto/bcrypt"
 
+	"github.com/gin-gonic/gin"
 	"golang.org/x/text/encoding/charmap"
 	"gopkg.in/ini.v1"
 )
@@ -35,12 +36,52 @@ type Config struct {
 type Runner struct {
 	db     *sql.DB
 	logger *log.Logger
+	data   *gin.H
+}
+
+type IndicationRow struct {
+	Nom_pu  string
+	Marka   string
+	Mt      int
+	Koef    int
+	Los_per float64
+	Ktp     string
+	Data    float64
+	Tz      string
+	I_date  string
+	Vid_en  string
+}
+
+type Usr struct {
+	Id               int64     `json:"id"`
+	Username         string    `json:"username"`
+	Password         string    `json:"password"`
+	Personal_account string    `json:"personalaccount"`
+	Address          string    `json:"addres"`
+	Fio              string    `json:"fio"`
+	Contact          string    `json:"contact"`
+	Lich_id          int64     `json:"lichid"`
+	Visit_date       time.Time `json:"visitdate"`
+}
+
+var users = make(map[string]string)
+
+type IndicationOfPersonalAccount struct {
+	personal_account string
+	address          string
+	fio              string
+	table            []IndicationRow
 }
 
 var config Config
 var runner Runner
+var router *gin.Engine
+var ipa IndicationOfPersonalAccount
 
 func main() {
+	// Set Gin to production mode
+	gin.SetMode(gin.ReleaseMode)
+
 	cfg, err := ini.Load("rmp.ini")
 	if err != nil {
 		panic(err)
@@ -70,10 +111,19 @@ func main() {
 	}
 	defer runner.db.Close()
 
-	http.HandleFunc("/", homeHandler)
-	http.HandleFunc("/usr/", usrHandler)
-	http.HandleFunc("/meter/", meterHandler)
-	http.HandleFunc("/indication/", indicationHandler)
+	// Set the router as the default one provided by Gin
+	router = gin.Default()
+
+	// Process the templates at the start so that they don't have to be loaded
+	// from the disk again. This makes serving HTML pages very fast.
+	router.LoadHTMLGlob("templates/*")
+
+	// Initialize the routes
+	initializeRoutes()
+
+	// Start serving the application
+
+	router.Run(fmt.Sprintf("localhost:%s", config.port_string))
 
 	// Connect and check the server version
 	var version string
@@ -82,25 +132,45 @@ func main() {
 
 	go loadAll()
 
-	addr := fmt.Sprintf("localhost:%s", config.port_string)
-	runner.logger.Fatal(http.ListenAndServe(addr, nil))
+	//	addr := fmt.Sprintf("localhost:%s", config.port_string)
+	//	runner.logger.Fatal(http.ListenAndServe(addr, nil))
 }
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to the home page RMP application!")
+// Render one of HTML, JSON or CSV based on the 'Accept' header of the request
+// If the header doesn't specify this, HTML is rendered, provided that
+// the template name is present
+func render(c *gin.Context, data gin.H, templateName string) {
+	loggedInInterface, _ := c.Get("is_logged_in")
+	data["is_logged_in"] = loggedInInterface.(bool)
+
+	switch c.Request.Header.Get("Accept") {
+	case "application/json":
+		// Respond with JSON
+		c.JSON(http.StatusOK, data["payload"])
+	case "application/xml":
+		// Respond with XML
+		c.XML(http.StatusOK, data["payload"])
+	default:
+		// Respond with HTML
+		c.HTML(http.StatusOK, templateName, data)
+	}
 }
 
-func usrHandler(w http.ResponseWriter, r *http.Request) {
+func homeHandler(c *gin.Context) {
+	fmt.Fprintf(c.Writer, "Welcome to the home page RMP application!")
+}
+
+func usrHandler(c *gin.Context) {
 	rows, err := runner.db.Query("SELECT " +
 		"username, password, personal_account, address, fio, contact, visit_date " +
 		"FROM usr")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	fmt.Fprintf(w, "Table:")
+	fmt.Fprintf(c.Writer, "Table:")
 	count := 0
 	for rows.Next() {
 		var username, password, personal_account, address, fio, contact string
@@ -108,30 +178,30 @@ func usrHandler(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&username, &password, &personal_account, &address, &fio, &contact, &visit_date)
 		if err != nil {
 			runner.logger.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		count += 1
-		fmt.Fprintf(w, "%d,%s,%s,%s,%s,%s,%s,%s\n",
+		fmt.Fprintf(c.Writer, "%d,%s,%s,%s,%s,%s,%s,%s\n",
 			count, username, password, personal_account, address, fio, contact, string(visit_date[:]))
 	}
 	if err = rows.Err(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func meterHandler(w http.ResponseWriter, r *http.Request) {
+func meterHandler(c *gin.Context) {
 	rows, err := runner.db.Query("SELECT " +
 		"nom_pu, marka, mt, koef, los_per, ktp, res, meter_id, usr_id " +
 		"FROM meterdevice")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	fmt.Fprintf(w, "Table:")
+	fmt.Fprintf(c.Writer, "Table:")
 	count := 0
 	for rows.Next() {
 		var nom_pu, marka, ktp, res string
@@ -141,50 +211,74 @@ func meterHandler(w http.ResponseWriter, r *http.Request) {
 		err := rows.Scan(&nom_pu, &marka, &mt, &koef, &los_per, &ktp, &res, &meter_id, &usr_id)
 		if err != nil {
 			runner.logger.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 		count += 1
-		fmt.Fprintf(w, "%d,%s,%s,%d,%d,%f,%s,%s,%d,%d\n",
+		fmt.Fprintf(c.Writer, "%d,%s,%s,%d,%d,%f,%s,%s,%d,%d\n",
 			count, nom_pu, marka, mt, koef, los_per, ktp, res, meter_id, usr_id)
 	}
 	if err = rows.Err(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func indicationHandler(w http.ResponseWriter, r *http.Request) {
-	rows, err := runner.db.Query("SELECT " +
-		"data, tz, date, vid_en, device_id " +
-		"FROM indication")
+func indicationHandler(c *gin.Context) {
+	rowUsr, err := runner.db.Query("SELECT u.personal_account, u.address, u.fio FROM usr AS u WHERE id =4")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rowUsr.Close()
+
+	for rowUsr.Next() {
+		err := rowUsr.Scan(&ipa.personal_account, &ipa.address, &ipa.fio)
+		if err != nil {
+			runner.logger.Println(err)
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		ipa.table = []IndicationRow{}
+	}
+
+	rows, err := runner.db.Query("SELECT " +
+		"m.nom_pu, m.marka, m.mt, m.koef, m.los_per, m.ktp, " +
+		"i.data, i.tz, i.i_date, i.vid_en " +
+		"FROM indication AS i, meterdevice AS m " +
+		"WHERE i.device_id = m.id AND m.usr_id = 4")
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	fmt.Fprintf(w, "Table Indication:")
+	fmt.Fprintf(c.Writer, "Table Indication:\n")
+	fmt.Fprintf(c.Writer, "Лицевой счёт: \t%s\n", ipa.personal_account)
+	fmt.Fprintf(c.Writer, "Адрес: \t%s\n", ipa.address)
+	fmt.Fprintf(c.Writer, "ФИО: \t%s\n", ipa.fio)
 	count := 0
+	var i_date_time time.Time
 	for rows.Next() {
-		var tz, vid_en string
-		var device_id int64
-		var date time.Time
-		var data float64
-		err := rows.Scan(&data, &tz, &date, &vid_en, &device_id)
+		var ir IndicationRow
+		err := rows.Scan(&ir.Nom_pu, &ir.Marka, &ir.Mt, &ir.Koef, &ir.Los_per, &ir.Ktp,
+			&ir.Data, &ir.Tz, &i_date_time, &ir.Vid_en)
 		if err != nil {
 			runner.logger.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		ir.I_date = i_date_time.Format(time.DateOnly)
+		ipa.table = append(ipa.table, ir)
 		count += 1
-		fmt.Fprintf(w, "%f,%s,%s,%s,%d\n",
-			data, tz, date.Format(time.DateOnly), vid_en, device_id)
+		fmt.Fprintf(c.Writer, "%s\t%s\t%d\t%d\t%f\t%s\t%f\t%s\t%v\t%s\n",
+			ir.Nom_pu, ir.Marka, ir.Mt, ir.Koef, ir.Los_per, ir.Ktp, ir.Data, ir.Tz, ir.I_date, ir.Vid_en)
 	}
 	if err = rows.Err(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	fmt.Fprintf(c.Writer, "Object IndicationOfPersonalAccount:\n%v", ipa)
 }
 
 func loadAll() {
@@ -373,11 +467,11 @@ func loadIndication() {
 			`id` BIGINT(20),
 			`data` VARCHAR(13),
 			`tz` VARCHAR(9),
-			`date` DATE,
+			`i_date` DATE,
 			`vid_en` VARCHAR(5),
 			`device_id` BIGINT(20),
 
-			id, data, tz, date, vid_en, device_id
+			id, data, tz, i_date, vid_en, device_id
 	*/
 	timeStartDBload := time.Now()
 	runner.logger.Printf("Start indication load: %s", timeStartDBload.Local())
@@ -417,7 +511,7 @@ func loadIndication() {
 		var year, _ = strconv.ParseInt(dateList[2], 10, 64)
 		var month, _ = strconv.ParseInt(dateList[1], 10, 64)
 		var day, _ = strconv.ParseInt(dateList[0], 10, 64)
-		var date = time.Date(int(year), time.Month(month), int(day), 0, 0, 1, 0, time.UTC)
+		var i_date = time.Date(int(year), time.Month(month), int(day), 0, 0, 0, 0, time.UTC)
 		if err == nil {
 			sql_find_id := fmt.Sprintf("select id from meterdevice where meter_id=%d", meter_id)
 			err2 := runner.db.QueryRow(sql_find_id).Scan(&id)
@@ -425,24 +519,23 @@ func loadIndication() {
 				runner.logger.Printf("For indication of meter device %d not found device %d\n", meter_id, id)
 				continue
 			} else {
-				y, m, d := date.Date()
-				sql_find_id := fmt.Sprintf("select id from indication where date='%v-%v-%v' "+
+				sql_find_id := fmt.Sprintf("select id from indication where i_date='%s' "+
 					"and device_id=%d and tz='%s'",
-					y, int(m), d, id, record[2])
+					i_date.Format(time.DateOnly), id, record[1])
 				err3 := runner.db.QueryRow(sql_find_id).Scan(&meter_id)
 				if err3 == nil {
 					runner.logger.Printf("Indication of date %v of meter device %d already found\n",
-						date,
+						i_date,
 						meter_id)
 					continue
 				} else {
 					countInsert += 1
 					sql_str = fmt.Sprintf("INSERT INTO indication " +
-						"(data, tz, date, vid_en, device_id)" +
+						"(data, tz, i_date, vid_en, device_id)" +
 						" VALUES (?, ?, ?, ?, ?);")
 					stmt, err := runner.db.Prepare(sql_str)
 					if err == nil {
-						_, err = stmt.Exec(data, record[1], date, record[3], id)
+						_, err = stmt.Exec(data, record[1], i_date, record[3], id)
 						if err != nil {
 							runner.logger.Fatal(err)
 							panic(err)

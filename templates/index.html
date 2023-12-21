@@ -1,0 +1,82 @@
+<!--index.html-->
+
+<!--Embed the header.html template at this location-->
+{{ template "header.html" .}}
+
+  <p>Лицевой счёт: {{.personalAccount}}</p>
+  <p>Адрес: {{.address}}</p>
+  <p>ФИО: {{.fio}}</p>
+
+  <!--
+  <div class="container-fluid !direction !spacing">
+    <div class="row ${1| ,row-cols-2,row-cols-3, auto,justify-content-md-center,|}">
+      {{range .table}}
+        <tr>
+          <div class="col-sm-10">
+            {{.Nom_pu}}
+          </div>
+          <div class="col-sm-10">
+            {{.Marka}}
+          </div>
+          <div class="col-sm-10">
+            {{.Mt}}
+          </div>
+          <div class="col-sm-10">
+            {{.Koef}}
+          </div>
+          <div class="col-sm-10">
+            {{.Los_per}}
+          </div>
+          <div class="col-sm-10">
+            {{.Ktp}}
+          </div>
+          <div class="col-sm-10">
+            {{.Data}}
+          </div>
+          <div class="col-sm-10">
+            {{.Tz}}
+          </div>
+          <div class="col-sm-10">
+            {{.I_date}}
+          </div>
+          <div class="col-sm-10">
+            {{.Vid_en}}
+          </div>
+      {{end}}
+    </div>
+  </div>
+  -->
+  <table class="table table-striped">
+    <thead>
+      <th scope="col">№ ПУ</th>
+      <th scope="col">Марка ПУ</th>
+      <th scope="col">Кол. тариф. зон</th>
+      <th scope="col">Коэффициент</th>
+      <th scope="col">% потерь</th>
+      <th scope="col">Наименование ТП</th>
+      <th scope="col">Показания ПУ</th>
+      <th scope="col">Тарифная зона</th>
+      <th scope="col">Дата показаний</th>
+      <th scope="col">Вид эл.энерг.</th>
+    </thead>
+    <tbody>
+      {{range .table}}
+        <tr>
+          <td>{{.Nom_pu}}</td>
+          <td>{{.Marka}}</td>
+          <td>{{.Mt}}</td>
+          <td>{{.Koef}}</td>
+          <td>{{.Los_per}}</td>
+          <td>{{.Ktp}}</td>
+          <td>{{.Data}}</td>
+          <td>{{.Tz}}</td>
+          <td>{{.I_date}}</td>
+          <td>{{.Vid_en}}</td>
+        </tr>
+      {{end}}
+    </tbody>
+
+  </table>
+  
+<!--Embed the footer.html template at this location-->
+{{ template "footer.html" .}}
