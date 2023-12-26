@@ -36,7 +36,6 @@ type Config struct {
 type Runner struct {
 	db     *sql.DB
 	logger *log.Logger
-	data   *gin.H
 }
 
 type IndicationRow struct {
@@ -64,8 +63,6 @@ type Usr struct {
 	Visit_date       time.Time `json:"visitdate"`
 }
 
-var users = make(map[string]string)
-
 type IndicationOfPersonalAccount struct {
 	personal_account string
 	address          string
@@ -77,6 +74,12 @@ var config Config
 var runner Runner
 var router *gin.Engine
 var ipa IndicationOfPersonalAccount
+
+// Создаем расписание с указанными временами
+var schedule = []string{"07:00", "12:00", "18:00"}
+
+// Первый запуск
+var firstStart = true
 
 func main() {
 	// Set Gin to production mode
@@ -123,17 +126,29 @@ func main() {
 
 	// Start serving the application
 
-	router.Run(fmt.Sprintf("localhost:%s", config.port_string))
+	router.Run(fmt.Sprintf(":%s", config.port_string))
+	//router.Run(fmt.Sprintf(config.server_string, ":", config.port_string))
 
 	// Connect and check the server version
 	var version string
 	runner.db.QueryRow("SELECT VERSION()").Scan(&version)
 	runner.logger.Println("Connected to:", version)
 
+	if firstStart {
+		go firstLoad()
+	}
+
 	go loadAll()
 
 	//	addr := fmt.Sprintf("localhost:%s", config.port_string)
 	//	runner.logger.Fatal(http.ListenAndServe(addr, nil))
+}
+
+func firstLoad() {
+	loadUsr()
+	loadMeterDevece()
+	loadIndication()
+	firstStart = false
 }
 
 // Render one of HTML, JSON or CSV based on the 'Accept' header of the request
@@ -154,10 +169,6 @@ func render(c *gin.Context, data gin.H, templateName string) {
 		// Respond with HTML
 		c.HTML(http.StatusOK, templateName, data)
 	}
-}
-
-func homeHandler(c *gin.Context) {
-	fmt.Fprintf(c.Writer, "Welcome to the home page RMP application!")
 }
 
 func usrHandler(c *gin.Context) {
@@ -282,9 +293,42 @@ func indicationHandler(c *gin.Context) {
 }
 
 func loadAll() {
-	loadUsr()
-	loadMeterDevece()
-	loadIndication()
+	// Получаем текущую локальную временную зону
+	localZone, err := time.LoadLocation("Local")
+	if err != nil {
+		fmt.Println("Ошибка при загрузке локальной временной зоны:", err)
+		return
+	}
+
+	for _, t := range schedule {
+		// Парсим время из расписания
+		targetTime, err := time.ParseInLocation("15:04", t, localZone)
+		if err != nil {
+			fmt.Println("Ошибка при парсинге времени:", err)
+			return
+		}
+
+		// Получаем текущее время
+		currentTime := time.Now()
+
+		// Вычисляем время до следующего запуска задачи
+		duration := targetTime.Sub(currentTime)
+
+		if duration < 0 {
+			// Если время уже прошло на сегодня, переходим к следующему
+			continue
+		}
+
+		fmt.Println("Задача будет запущена через", duration)
+
+		// Ожидаем до времени запуска задачи
+		time.Sleep(duration)
+
+		// Здесь можно вызвать функцию или выполнить нужную задачу
+		loadUsr()
+		loadMeterDevece()
+		loadIndication()
+	}
 }
 
 func loadUsr() {
