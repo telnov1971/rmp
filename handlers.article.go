@@ -10,6 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+var periodstart, periodstend, sort string
+
+func filterIndexPage(c *gin.Context) {
+	periodstart = c.PostForm("periodstart")
+	periodstend = c.PostForm("periodend")
+	sort = c.PostForm("sort")
+	c.Request.Method = "GET"
+	showIndexPage(c)
+}
+
 func showIndexPage(c *gin.Context) {
 
 	getIndications(c)
@@ -20,11 +30,16 @@ func showIndexPage(c *gin.Context) {
 		"personalAccount": ipa.personal_account,
 		"address":         ipa.address,
 		"fio":             ipa.fio,
-		"table":           ipa.table},
+		"table":           ipa.table,
+		"periodstart":     periodstart,
+		"periodend":       periodstend,
+		"sort":            sort,
+	},
 		"index.html")
 }
 
 func getIndications(c *gin.Context) {
+	var sql1, sql2, sql3, sql string
 	user, err := c.Cookie("username")
 	if err == nil && user != "" {
 		token, err := c.Cookie("token")
@@ -47,12 +62,29 @@ func getIndications(c *gin.Context) {
 				}
 				ipa.table = []IndicationRow{}
 			}
-			rows, err := runner.db.Query(fmt.Sprintf("SELECT "+
+			sql1 = fmt.Sprintf("SELECT "+
 				"m.nom_pu, m.marka, m.mt, m.koef, m.los_per, m.ktp, "+
 				"i.data, i.tz, i.i_date, i.vid_en "+
 				"FROM indication AS i, meterdevice AS m "+
-				"WHERE i.device_id = m.id AND m.usr_id = %d "+
-				"ORDER BY m.nom_pu, i.i_date", user_id))
+				"WHERE i.device_id = m.id AND m.usr_id = %d ", user_id)
+			if periodstart != "" && periodstend != "" {
+				sql2 = fmt.Sprintf("AND i.i_date BETWEEN '%s' AND '%s' ", periodstart, periodstend)
+			} else {
+				if periodstart != "" {
+					sql2 = fmt.Sprintf("AND i.i_date > '%s' ", periodstart)
+				}
+				if periodstend != "" {
+					sql2 = fmt.Sprintf("AND i.i_date < '%s' ", periodstend)
+				}
+			}
+			switch sort {
+			case "", "idate":
+				sql3 = "ORDER BY i.i_date DESC, m.nom_pu ASC"
+			case "number":
+				sql3 = "ORDER BY m.nom_pu ASC, i.i_date DESC"
+			}
+			sql = sql1 + sql2 + sql3
+			rows, err := runner.db.Query(sql)
 			if err != nil {
 				http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 				return

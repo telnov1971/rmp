@@ -3,9 +3,37 @@
 <!--Embed the header.html template at this location-->
 {{ template "header.html" .}}
 
-  <p>Лицевой счёт: {{.personalAccount}}</p>
-  <p>Адрес: {{.address}}</p>
-  <p>ФИО: {{.fio}}</p>
+  <table class="table table-striped">
+    <tr>
+      <td>
+        <p>Лицевой счёт: <strong>{{.personalAccount}}</strong></p>
+        <p>Адрес: <strong>{{.address}}</strong></p>
+        <p>ФИО: <strong>{{.fio}}</strong></p>
+      </td>
+      <td>
+        <form class="form" action="/" method="POST">
+          <div class="form-group">
+            <p>
+              <label for="password">Начало периода</label>
+              <input type="date" name="periodstart" min="2023-11-01" value="{{.periodstart}}" />
+            </p>
+            <p>
+              <label for="password">Конец периода</label>
+              <input type="date" name="periodend" min="2023-11-01" value="{{.periodend}}" />
+            </p>
+            <p>
+              <select name="sort" id="sort-select" value="{{.sort}}" >
+                <option value="" {{if eq .sort ""}} selected {{end}} >-- сортировка --</option>
+                <option value="number" {{if eq .sort "number"}} selected {{end}} >№ ПУ</option>
+                <option value="idate" {{if eq .sort "idate"}} selected {{end}} >Дата показаний</option>
+              </select>
+            </p>
+          </div>
+          <p><button type="submit" class="btn btn-primary">Фильтровать</button></p>
+        </form>    
+      </td>
+    </tr>
+  </table>
 
   <!--
   <div class="container-fluid !direction !spacing">
@@ -78,6 +106,7 @@
   </table>
   
   <!--
+
   <div class="container">
     <div class="row">
       <div class="col-md-1 col-lg-1 grid-row">

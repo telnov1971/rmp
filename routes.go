@@ -10,7 +10,7 @@ func initializeRoutes() {
 
 	// Handle the index route
 	router.GET("/", showIndexPage)
-	router.POST("/", showIndexPage)
+	router.POST("/", filterIndexPage)
 
 	// Group user related routes together
 	userRoutes := router.Group("/u")
