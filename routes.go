@@ -12,6 +12,9 @@ func initializeRoutes() {
 	router.GET("/", showIndexPage)
 	router.POST("/", filterIndexPage)
 
+	router.Static("/static", "./static")
+	//router.StaticFS("/static",http.Dir("./static"))
+
 	// Group user related routes together
 	userRoutes := router.Group("/u")
 	{
