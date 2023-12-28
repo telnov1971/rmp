@@ -6,12 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-)
 
-type user struct {
-	Username string `json:"username"`
-	Password string `json:"-"`
-}
+	"golang.org/x/crypto/bcrypt"
+)
 
 // Check if the username and password combination is valid
 func isUserValid(username, password string) bool {
@@ -19,14 +16,30 @@ func isUserValid(username, password string) bool {
 }
 
 // Changing password for the given username
-func changePassword(username, password string) (*user, error) {
+func changePassword(username, password string) error {
+	var id int64
 	if strings.TrimSpace(password) == "" {
-		return nil, errors.New("The password can't be empty")
+		return errors.New("пароль не может быть пустым")
 	}
 
-	u := user{Username: username, Password: password}
+	id = getUserId(username)
 
-	return &u, nil
+	if id != 0 {
+		pass, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		sqlupdate := "UPDATE usr SET usr.password=? WHERE usr.id=?"
+		stmt, err := runner.db.Prepare(sqlupdate)
+		if err == nil {
+			_, err := stmt.Exec(pass, id)
+			if err != nil {
+				return err
+			}
+		}
+		defer stmt.Close()
+	}
+	return nil
 }
 
 func validateUser(user, pass string) bool {
@@ -48,7 +61,7 @@ func validateUser(user, pass string) bool {
 			runner.logger.Println(err.Error())
 			return false
 		}
-		if pass != password {
+		if bcrypt.CompareHashAndPassword([]byte(password), []byte(pass)) != nil {
 			runner.logger.Println(err.Error())
 			return false
 		} else {

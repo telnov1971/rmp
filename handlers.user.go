@@ -76,13 +76,13 @@ func register(c *gin.Context) {
 
 	if password != passVerify {
 		c.HTML(http.StatusBadRequest, "register.html", gin.H{
-			"ErrorTitle":   "Password Changing Failed",
-			"ErrorMessage": "Passwords don't match"})
+			"ErrorTitle":   "Ошибка изменения пароля",
+			"ErrorMessage": "Пароли не совпадают"})
 		return
 	}
 
-	if username, err := c.Cookie("username"); err != nil {
-		if _, err := changePassword(username, password); err == nil {
+	if username, err := c.Cookie("username"); err == nil {
+		if err := changePassword(username, password); err == nil {
 			// If the user is created, set the token in a cookie and log the user in
 			token := generateSessionToken()
 			c.SetCookie("token", token, 3600, "", "", false, true)
