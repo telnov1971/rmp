@@ -40,8 +40,4 @@ func initializeRoutes() {
 		// Ensure that the user is not logged in by using the middleware
 		userRoutes.POST("/register", ensureNotLoggedIn(), register)
 	}
-
-	router.GET("/meter", ensureNotLoggedIn(), meterHandler)
-	router.GET("/usr", ensureNotLoggedIn(), usrHandler)
-	router.GET("/indi", ensureNotLoggedIn(), indicationHandler)
 }

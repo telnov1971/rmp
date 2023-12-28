@@ -1,0 +1,62 @@
+a {
+    text-decoration: none;
+    color: #232323;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: red;
+}
+
+.area:hover ul {
+    display: block;
+    z-index: 1;
+    margin: 0px 15px 0px;
+}
+
+.menu-content {
+    font-family: "Apple Braille", sans-serif;
+    list-style-type: none;
+}
+
+.drop-down {
+    padding: 10px 10px 0px;
+}
+
+.menu-content {
+    max-height: 0;
+    overflow: hidden;
+    font-family: 'Oswald', sans-serif;
+    padding: 0 0 0 25px;
+}
+
+input:checked ~ .menu-content {
+    max-height: 100%;
+}
+
+
+.drop-down span {
+    display: block;
+    width: 33px;
+    height: 4px;
+    margin-bottom: 5px;
+    position: relative;
+    background: #cdcdcd;
+    cursor: pointer;
+}
+
+.drop-down ul {
+    list-style-type: none;
+    padding: 0px 4px 0px;
+}
+
+.drop-down a {
+    margin: 3px;
+    display: block;
+    padding: 1.3px;
+    margin: 3px;
+}
+
+input#menu {
+    display: none;
+}

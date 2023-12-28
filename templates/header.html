@@ -3,25 +3,25 @@
 <!doctype html>
 <html>
 
-  <head>
+<head>
     <!--Use the `title` variable to set the title of the page-->
     <title>{{ .title }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta charset="UTF-8">
-    
+
     <!--Use bootstrap to make the application look decent-->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link href="/static/css/my.css" rel="stylesheet">
+    <link href="/static/css/menu.css" rel="stylesheet">
     <style>
-      /* Дополнительные стили для скрытия нечетных строк на широком экране */
-      @media (min-width: 1378px) {
-        .grid-row:nth-child(odd) {
-          display: none;
+        /* Дополнительные стили для скрытия нечетных строк на широком экране */
+        @media (min-width: 992px) {
+            .grid-row:nth-child(odd) {
+                display: none;
+            }
         }
-      }
     </style>
-  </head>
+</head>
 
-  <body class="container">
+<body class="container">
     <!--Embed the menu.html template at this location-->
     {{ template "menu.html" . }}

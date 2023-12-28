@@ -29,52 +29,30 @@
               </select>
             </p>
           </div>
-          <p><button type="submit" class="btn btn-primary">Фильтровать</button></p>
+          <p><button type="submit" class="btn btn-primary">Установить</button></p>
         </form>    
       </td>
     </tr>
   </table>
 
-  <!--
-  <div class="container-fluid !direction !spacing">
-    <div class="row ${1|,row-cols-2,row-cols-3,auto,justify-content-md-center,|}">
+  <table class="table table-striped">
+    <thead>
+      <th scope="col">№ ПУ</th>
+      <th scope="col">Показания ПУ</th>
+      <th scope="col">Дата показаний</th>
+    </thead>
+    <tbody>
       {{range .table}}
         <tr>
-          <div class="col-sm-10">
-            {{.Nom_pu}}
-          </div>
-          <div class="col-sm-10">
-            {{.Marka}}
-          </div>
-          <div class="col-sm-10">
-            {{.Mt}}
-          </div>
-          <div class="col-sm-10">
-            {{.Koef}}
-          </div>
-          <div class="col-sm-10">
-            {{.Los_per}}
-          </div>
-          <div class="col-sm-10">
-            {{.Ktp}}
-          </div>
-          <div class="col-sm-10">
-            {{.Data}}
-          </div>
-          <div class="col-sm-10">
-            {{.Tz}}
-          </div>
-          <div class="col-sm-10">
-            {{.I_date}}
-          </div>
-          <div class="col-sm-10">
-            {{.Vid_en}}
-          </div>
+          <td>{{.Nom_pu}}</td>
+          <td>{{.Data}}</td>
+          <td>{{.I_date}}</td>
+        </tr>
       {{end}}
-    </div>
-  </div>
-  -->
-  <table class="table table-striped">
+    </tbody>
+  </table>
+
+  <!-- table class="table table-striped">
     <thead>
       <th scope="col">№ ПУ</th>
       <th scope="col">Марка ПУ</th>
@@ -103,79 +81,29 @@
         </tr>
       {{end}}
     </tbody>
-  </table>
+  </table -->
   
   <!--
-
   <div class="container">
     <div class="row">
-      <div class="col-md-1 col-lg-1 grid-row">
+      <div class="col-md-6 col-lg-3 grid-row">
         <div class="card">
           <div class="card-body">
             № ПУ
           </div>
         </div>
       </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Марка ПУ
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Кол. тариф. зон
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Коэффициент
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            % потерь
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Наименование ТП
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
+      <div class="col-md-6 col-lg-3 grid-row">
         <div class="card">
           <div class="card-body">
             Показания ПУ
           </div>
         </div>
       </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Тарифная зона
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
+      <div class="col-md-6 col-lg-3 grid-row">
         <div class="card">
           <div class="card-body">
             Дата показаний
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Вид эл.энерг.
           </div>
         </div>
       </div>
@@ -184,80 +112,30 @@
   {{range .table}}
   <div class="container">
     <div class="row">
-      <div class="col-md-1 col-lg-1 grid-row">
+      <div class="col-md-6 col-lg-3 grid-row">
         <div class="card">
           <div class="card-body">
             {{.Nom_pu}}
           </div>
         </div>
       </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Marka}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Mt}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Koef}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Los_per}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Ktp}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
+      <div class="col-md-6 col-lg-3 grid-row">
         <div class="card">
           <div class="card-body">
             {{.Data}}
           </div>
         </div>
       </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Tz}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-1 col-lg-1 grid-row">
+      <div class="col-md-6 col-lg-3 grid-row">
         <div class="card">
           <div class="card-body">
             {{.I_date}}
           </div>
         </div>
       </div>
-      <div class="col-md-1 col-lg-1 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Vid_en}}
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   {{end}}
-  -->
-
+-->
 <!--Embed the footer.html template at this location-->
 {{ template "footer.html" .}}
