@@ -84,15 +84,19 @@ func loadUsr() {
 	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.user_string)
 	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
 	if err != nil {
-		runner.logger.Fatal(err)
+		runner.logger.Println(err)
 	}
 	defer f.Close()
+
+	if isOld(f, "usr") {
+		return
+	}
 
 	decoder := charmap.Windows1251.NewDecoder()
 	reader := decoder.Reader(f)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		runner.logger.Panic(err)
+		runner.logger.Println(err)
 		panic(err)
 	}
 
@@ -107,7 +111,7 @@ func loadUsr() {
 			break
 		}
 		if err != nil {
-			runner.logger.Fatal(err)
+			runner.logger.Println(err)
 		}
 
 		var id uint64
@@ -128,12 +132,12 @@ func loadUsr() {
 				if err == nil {
 					_, err = stmt.Exec(record[0], record[0], record[0], record[1], record[2], record[3], i)
 					if err != nil {
-						runner.logger.Fatal(err)
+						runner.logger.Println(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Fatal(err)
+					runner.logger.Println(err)
 					panic(err)
 				}
 			} else {
@@ -151,12 +155,12 @@ func loadUsr() {
 				if err == nil {
 					_, err = stmt.Exec(record[0], record[0], record[0], record[1], record[2], record[3], i, id)
 					if err != nil {
-						runner.logger.Fatal(err)
+						runner.logger.Println(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Fatal(err)
+					runner.logger.Println(err)
 					panic(err)
 				}
 			}
@@ -184,15 +188,19 @@ func loadMeterDevece() {
 	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.meter_string)
 	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
 	if err != nil {
-		runner.logger.Fatal(err)
+		runner.logger.Println(err)
 	}
 	defer f.Close()
+
+	if isOld(f, "mtr") {
+		return
+	}
 
 	decoder := charmap.Windows1251.NewDecoder()
 	reader := decoder.Reader(f)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		runner.logger.Panic(err)
+		runner.logger.Println(err)
 		panic(err)
 	}
 
@@ -206,7 +214,7 @@ func loadMeterDevece() {
 			break
 		}
 		if err != nil {
-			runner.logger.Fatal(err)
+			runner.logger.Println(err)
 		}
 
 		var usr_id, meter_id uint64
@@ -235,12 +243,12 @@ func loadMeterDevece() {
 				if err == nil {
 					_, err = stmt.Exec(record[0], record[1], mt, koef, losPer, record[5], record[6], meter_id, usr_id)
 					if err != nil {
-						runner.logger.Fatal(err)
+						runner.logger.Println(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Fatal(err)
+					runner.logger.Println(err)
 					panic(err)
 				}
 			}
@@ -269,15 +277,19 @@ func loadIndication() {
 	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.indication_string)
 	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
 	if err != nil {
-		runner.logger.Fatal(err)
+		runner.logger.Println(err)
 	}
 	defer f.Close()
+
+	if isOld(f, "ind") {
+		return
+	}
 
 	decoder := charmap.Windows1251.NewDecoder()
 	reader := decoder.Reader(f)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		runner.logger.Panic(err)
+		runner.logger.Println(err)
 		panic(err)
 	}
 
@@ -291,7 +303,7 @@ func loadIndication() {
 			break
 		}
 		if err != nil {
-			runner.logger.Fatal(err)
+			runner.logger.Println(err)
 		}
 
 		var meter_id, id uint64
@@ -327,12 +339,12 @@ func loadIndication() {
 					if err == nil {
 						_, err = stmt.Exec(data, record[1], i_date, record[3], id)
 						if err != nil {
-							runner.logger.Fatal(err)
+							runner.logger.Println(err)
 							panic(err)
 						}
 						stmt.Close()
 					} else {
-						runner.logger.Fatal(err)
+						runner.logger.Println(err)
 						panic(err)
 					}
 				}
@@ -342,4 +354,77 @@ func loadIndication() {
 	runner.logger.Println("Indications insert: ", countInsert)
 	runner.logger.Println(time.Until(timeStartDBload))
 	runner.logger.Println("Indications load")
+}
+
+func isOld(f *os.File, s string) bool {
+	var sql, sqlinsert string
+	var date_usr, date_mtr, date_ind, datebase time.Time
+	stat, err := f.Stat()
+	if err != nil {
+		runner.logger.Println(err)
+	}
+	datefile := stat.ModTime()
+
+	switch s {
+	case "usr":
+		sql = "SELECT date_usr FROM last;"
+		sqlinsert = "UPDATE last SET date_usr=? WHERE id=1;"
+	case "mtr":
+		sql = "SELECT date_mtr FROM last;"
+		sqlinsert = "UPDATE last SET date_mtr=? WHERE id=1;"
+	case "ind":
+		sql = "SELECT date_ind FROM last;"
+		sqlinsert = "UPDATE last SET date_ind=? WHERE id=1;"
+	}
+
+	if sql != "" {
+		date, err := runner.db.Query(sql)
+		if err != nil {
+			return true
+		}
+		defer date.Close()
+
+		for date.Next() {
+			switch s {
+			case "usr":
+				err := date.Scan(&date_usr)
+				if err != nil {
+					runner.logger.Println(err)
+					return true
+				}
+				datebase = date_usr
+			case "mtr":
+				err := date.Scan(&date_mtr)
+				if err != nil {
+					runner.logger.Println(err)
+					return true
+				}
+				datebase = date_mtr
+			case "ind":
+				err := date.Scan(&date_ind)
+				if err != nil {
+					runner.logger.Println(err)
+					return true
+				}
+				datebase = date_ind
+			}
+			if datefile.Sub(datebase.Add(time.Hour*23+time.Minute*59)) > 0 {
+				stmt, err := runner.db.Prepare(sqlinsert)
+				if err == nil {
+					_, err = stmt.Exec(datefile)
+					if err != nil {
+						runner.logger.Println(err)
+					}
+					stmt.Close()
+				} else {
+					runner.logger.Println(err)
+				}
+				return false
+			} else {
+				return true
+			}
+		}
+
+	}
+	return true
 }
