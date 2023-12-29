@@ -61,7 +61,7 @@ func validateUser(user, pass string) bool {
 			runner.logger.Println(err.Error())
 			return false
 		}
-		if bcrypt.CompareHashAndPassword([]byte(password), []byte(pass)) != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(pass)); err != nil {
 			runner.logger.Println(err.Error())
 			return false
 		} else {

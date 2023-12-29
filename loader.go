@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/encoding/charmap"
 )
 
@@ -130,7 +131,11 @@ func loadUsr() {
 					" VALUES (?, ?, ?, ?, ?, ?, ?);")
 				stmt, err := runner.db.Prepare(sql_str)
 				if err == nil {
-					_, err = stmt.Exec(record[0], record[0], record[0], record[1], record[2], record[3], i)
+					pass, err := bcrypt.GenerateFromPassword([]byte(record[0]), bcrypt.DefaultCost)
+					if err != nil {
+						runner.logger.Println(err)
+					}
+					_, err = stmt.Exec(record[0], pass, record[0], record[1], record[2], record[3], i)
 					if err != nil {
 						runner.logger.Println(err)
 						panic(err)
@@ -153,7 +158,13 @@ func loadUsr() {
 					"WHERE id=?;")
 				stmt, err := runner.db.Prepare(sql_str)
 				if err == nil {
-					_, err = stmt.Exec(record[0], record[0], record[0], record[1], record[2], record[3], i, id)
+					var password string
+					sql_pass := fmt.Sprintf("SELECT password FROM usr WHERE id=%d", i)
+					err := runner.db.QueryRow(sql_pass).Scan(&password)
+					if err != nil {
+						runner.logger.Println(err)
+					}
+					_, err = stmt.Exec(record[0], password, record[0], record[1], record[2], record[3], i)
 					if err != nil {
 						runner.logger.Println(err)
 						panic(err)

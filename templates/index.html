@@ -3,56 +3,58 @@
 <!--Embed the header.html template at this location-->
 {{ template "header.html" .}}
 
-  <table class="table table-striped">
+<table class="table table-striped">
     <tr>
-      <td>
-        <p>Лицевой счёт: <strong>{{.personalAccount}}</strong></p>
-        <p>Адрес: <strong>{{.address}}</strong></p>
-        <p>ФИО: <strong>{{.fio}}</strong></p>
-      </td>
-      <td>
-        <form class="form" action="/" method="POST">
-          <div class="form-group">
-            <p>
-              <label for="password">Начало периода</label>
-              <input type="date" name="periodstart" min="2023-11-01" value="{{.periodstart}}" />
-            </p>
-            <p>
-              <label for="password">Конец периода</label>
-              <input type="date" name="periodend" min="2023-11-01" value="{{.periodend}}" />
-            </p>
-            <p>
-              <select name="sort" id="sort-select" value="{{.sort}}" >
-                <option value="" {{if eq .sort ""}} selected {{end}} >-- сортировка --</option>
-                <option value="number" {{if eq .sort "number"}} selected {{end}} >№ ПУ</option>
-                <option value="idate" {{if eq .sort "idate"}} selected {{end}} >Дата показаний</option>
-              </select>
-            </p>
-          </div>
-          <p><button type="submit" class="btn btn-primary">Установить</button></p>
-        </form>    
-      </td>
+        <td>
+            <p>Лицевой счёт: <strong>{{.personalAccount}}</strong></p>
+            <p>Адрес: <strong>{{.address}}</strong></p>
+            <p>ФИО: <strong>{{.fio}}</strong></p>
+        </td>
+        <td>
+            <form class="form" action="/" method="POST">
+                <div class="form-group">
+                    <p>
+                        <label for="password">Начало периода</label>
+                        <input type="date" name="periodstart" min="2023-11-01" value="{{.periodstart}}" />
+                    </p>
+                    <p>
+                        <label for="password">Конец периода</label>
+                        <input type="date" name="periodend" min="2023-11-01" value="{{.periodend}}" />
+                    </p>
+                    <p>
+                        <select name="sort" id="sort-select" value="{{.sort}}">
+                            <option value="" {{if eq .sort ""}} selected {{end}}>-- сортировка --</option>
+                            <option value="number" {{if eq .sort "number"}} selected {{end}}>№ ПУ</option>
+                            <option value="idate" {{if eq .sort "idate"}} selected {{end}}>Дата показаний</option>
+                        </select>
+                    </p>
+                </div>
+                <p><button type="submit" class="btn btn-primary">Установить</button></p>
+            </form>
+        </td>
     </tr>
-  </table>
+</table>
 
-  <table class="table table-striped">
+<table class="table table-striped">
     <thead>
-      <th scope="col">№ ПУ</th>
-      <th scope="col">Показания ПУ</th>
-      <th scope="col">Дата показаний</th>
+        <th scope="col">№ ПУ</th>
+        <th scope="col">Показания ПУ</th>
+        <th scope="col">Тарифная зона</th>
+        <th scope="col">Дата показаний</th>
     </thead>
     <tbody>
-      {{range .table}}
+        {{range .table}}
         <tr>
-          <td>{{.Nom_pu}}</td>
-          <td>{{.Data}}</td>
-          <td>{{.I_date}}</td>
+            <td>{{.Nom_pu}}</td>
+            <td>{{.Data}}</td>
+            <td>{{.Tz}}</td>
+            <td>{{.I_date}}</td>
         </tr>
-      {{end}}
+        {{end}}
     </tbody>
-  </table>
+</table>
 
-  <!-- table class="table table-striped">
+<!-- table class="table table-striped">
     <thead>
       <th scope="col">№ ПУ</th>
       <th scope="col">Марка ПУ</th>
@@ -82,8 +84,8 @@
       {{end}}
     </tbody>
   </table -->
-  
-  <!--
+
+<!--
   <div class="container">
     <div class="row">
       <div class="col-md-6 col-lg-3 grid-row">

@@ -13,7 +13,7 @@ import (
 func showLoginPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Login",
+		"title": "Вхож",
 	}, "login.html")
 }
 
@@ -30,15 +30,13 @@ func performLogin(c *gin.Context) {
 		c.SetCookie("username", username, 3600, "", "", false, true)
 		c.Set("is_logged_in", true)
 		c.Set("user_id", getUserId(username))
-
-		c.Redirect(http.StatusTemporaryRedirect, "/")
-
+		c.Redirect(http.StatusFound, "/")
 	} else {
 		// If the username/password combination is invalid,
 		// show the error message on the login page
 		c.HTML(http.StatusBadRequest, "login.html", gin.H{
-			"ErrorTitle":   "Login Failed",
-			"ErrorMessage": "Invalid credentials provided"})
+			"ErrorTitle":   "Вход не выполнен",
+			"ErrorMessage": "Предоставлены неверные учетные данные"})
 	}
 }
 
@@ -55,11 +53,11 @@ func logout(c *gin.Context) {
 	c.SetCookie("token", "", -1, "", "", false, true)
 	c.SetCookie("username", "", -1, "", "", false, true)
 
-	// Redirect to the home page
-	c.Redirect(http.StatusTemporaryRedirect, "/")
-
 	c.Set("is_logged_in", false)
 	c.Set("user_id", 0)
+
+	// Redirect to the home page
+	c.Redirect(http.StatusFound, "/")
 }
 
 func showRegistrationPage(c *gin.Context) {
@@ -89,8 +87,9 @@ func register(c *gin.Context) {
 			c.Set("is_logged_in", true)
 			c.Set("username", username)
 
-			render(c, gin.H{
-				"title": "Password changed"}, "login-successful.html")
+			c.Redirect(http.StatusFound, "/")
+			//render(c, gin.H{
+			//"title": "Password changed"}, "login-successful.html")
 
 		} else {
 			// If the username/password combination is invalid,
@@ -98,8 +97,6 @@ func register(c *gin.Context) {
 			c.HTML(http.StatusBadRequest, "register.html", gin.H{
 				"ErrorTitle":   "Password Changing Failed",
 				"ErrorMessage": err.Error()})
-
 		}
 	}
-
 }
