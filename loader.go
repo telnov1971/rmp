@@ -325,6 +325,18 @@ func loadIndication() {
 		var month, _ = strconv.ParseInt(dateList[1], 10, 64)
 		var day, _ = strconv.ParseInt(dateList[0], 10, 64)
 		var i_date = time.Date(int(year), time.Month(month), int(day), 0, 0, 0, 0, time.UTC)
+		var tz_sort int
+		switch record[1] {
+		case "Пик", "День":
+			tz_sort = 1
+		case "Ночь":
+			tz_sort = 2
+		case "Полупик":
+			tz_sort = 3
+		default:
+			tz_sort = 0
+		}
+
 		if err == nil {
 			sql_find_id := fmt.Sprintf("select id from meterdevice where meter_id=%d", meter_id)
 			err2 := runner.db.QueryRow(sql_find_id).Scan(&id)
@@ -344,11 +356,11 @@ func loadIndication() {
 				} else {
 					countInsert += 1
 					sql_str = fmt.Sprintf("INSERT INTO indication " +
-						"(data, tz, i_date, vid_en, device_id)" +
-						" VALUES (?, ?, ?, ?, ?);")
+						"(data, tz, tz_sort, i_date, vid_en, device_id)" +
+						" VALUES (?, ?, ?, ?, ?, ?);")
 					stmt, err := runner.db.Prepare(sql_str)
 					if err == nil {
-						_, err = stmt.Exec(data, record[1], i_date, record[3], id)
+						_, err = stmt.Exec(data, record[1], tz_sort, i_date, record[3], id)
 						if err != nil {
 							runner.logger.Println(err)
 							panic(err)

@@ -3,141 +3,84 @@
 <!--Embed the header.html template at this location-->
 {{ template "header.html" .}}
 
-<table class="table table-striped">
-    <tr>
-        <td>
-            <p>Лицевой счёт: <strong>{{.personalAccount}}</strong></p>
-            <p>Адрес: <strong>{{.address}}</strong></p>
-            <p>ФИО: <strong>{{.fio}}</strong></p>
-        </td>
-        <td>
-            <form class="form" action="/" method="POST">
-                <div class="form-group">
-                    <p>
-                        <label for="password">Начало периода</label>
-                        <input type="date" name="periodstart" min="2023-11-01" value="{{.periodstart}}" />
-                    </p>
-                    <p>
-                        <label for="password">Конец периода</label>
-                        <input type="date" name="periodend" min="2023-11-01" value="{{.periodend}}" />
-                    </p>
-                    <p>
-                        <select name="sort" id="sort-select" value="{{.sort}}">
-                            <option value="" {{if eq .sort ""}} selected {{end}}>-- сортировка --</option>
-                            <option value="number" {{if eq .sort "number"}} selected {{end}}>№ ПУ</option>
-                            <option value="idate" {{if eq .sort "idate"}} selected {{end}}>Дата показаний</option>
-                        </select>
-                    </p>
-                </div>
-                <p><button type="submit" class="btn btn-primary">Установить</button></p>
-            </form>
-        </td>
-    </tr>
-</table>
-
-<table class="table table-striped">
-    <thead>
-        <th scope="col">№ ПУ</th>
-        <th scope="col">Показания ПУ</th>
-        <th scope="col">Тарифная зона</th>
-        <th scope="col">Дата показаний</th>
-    </thead>
-    <tbody>
-        {{range .table}}
-        <tr>
-            <td>{{.Nom_pu}}</td>
-            <td>{{.Data}}</td>
-            <td>{{.Tz}}</td>
-            <td>{{.I_date}}</td>
-        </tr>
-        {{end}}
-    </tbody>
-</table>
-
-<!-- table class="table table-striped">
-    <thead>
-      <th scope="col">№ ПУ</th>
-      <th scope="col">Марка ПУ</th>
-      <th scope="col">Кол. тариф. зон</th>
-      <th scope="col">Коэффициент</th>
-      <th scope="col">% потерь</th>
-      <th scope="col">Наименование ТП</th>
-      <th scope="col">Показания ПУ</th>
-      <th scope="col">Тарифная зона</th>
-      <th scope="col">Дата показаний</th>
-      <th scope="col">Вид эл.энерг.</th>
-    </thead>
-    <tbody>
-      {{range .table}}
-        <tr>
-          <td>{{.Nom_pu}}</td>
-          <td>{{.Marka}}</td>
-          <td>{{.Mt}}</td>
-          <td>{{.Koef}}</td>
-          <td>{{.Los_per}}</td>
-          <td>{{.Ktp}}</td>
-          <td>{{.Data}}</td>
-          <td>{{.Tz}}</td>
-          <td>{{.I_date}}</td>
-          <td>{{.Vid_en}}</td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table -->
-
-<!--
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6 col-lg-3 grid-row">
-        <div class="card">
-          <div class="card-body">
-            № ПУ
-          </div>
+<div class="bg-img">
+    <div class class="h-container">
+        <div class="user" style="padding:16px">
+            <h3>Показания приборов учета</h3>
         </div>
-      </div>
-      <div class="col-md-6 col-lg-3 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Показания ПУ
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 grid-row">
-        <div class="card">
-          <div class="card-body">
-            Дата показаний
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
-  {{range .table}}
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6 col-lg-3 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Nom_pu}}
-          </div>
+
+    <form class="form" action="/" method="POST">
+        <div class="form-group">
+            <div id="user_data">
+                <table>
+                    <tr>
+                        <th>Лицевой счёт:</th>
+                        <td>{{.personalAccount}}</td>
+                    </tr>
+                    <tr>
+                        <th>Адрес:</th>
+                        <td>{{.address}}</td>
+                    </tr>
+                    <tr>
+                        <th>ФИО:</th>
+                        <td>{{.fio}}</td>
+                    </tr>
+                    <tr>
+                        <th>Начало периода</th>
+                        <td><input type="date" name="periodstart" min="2023-11-01" value="{{.periodstart}}" /></td>
+                    </tr>
+                    <tr>
+                        <th>Конец периода</th>
+                        <td><input type="date" name="periodend" min="2023-11-01" value="{{.periodend}}" /></td>
+                    </tr>
+                    <tr>
+                        <th>Сортировать по</th>
+                        <td>
+                            <select name="sort" id="sort-select" value="{{.sort}}">
+                                <option value="" {{if eq .sort ""}} selected {{end}}>-- сортировка --</option>
+                                <option value="number" {{if eq .sort "number"}} selected {{end}}>№ ПУ</option>
+                                <option value="idate" {{if eq .sort "idate"}} selected {{end}}>Дата показаний</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Настройки</th>
+                        <td>
+                            <button type="submit" class="btn btn-primary">Применить</button>
+                        </td>
+                    </tr>
+                    </tr>
+                </table>
+            </div>
         </div>
-      </div>
-      <div class="col-md-6 col-lg-3 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.Data}}
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-3 grid-row">
-        <div class="card">
-          <div class="card-body">
-            {{.I_date}}
-          </div>
-        </div>
-      </div>
+    </form>
+
+</div>
+
+
+<div class="overflow">
+    <div class="container_tab">
+        <table class="table table-striped" id="data" bgcolor="#f1f1f1">
+            <thead>
+                <th scope="col">№ ПУ</th>
+                <th scope="col">Показания ПУ</th>
+                <th scope="col">Тарифная зона</th>
+                <th scope="col">Дата показаний</th>
+            </thead>
+            <tbody>
+                {{range .table}}
+                <tr>
+                    <td>{{.Nom_pu}}</td>
+                    <td>{{.Data}}</td>
+                    <td>{{.Tz}}</td>
+                    <td>{{.I_date}}</td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
     </div>
-  </div>
-  {{end}}
--->
+</div>
+
 <!--Embed the footer.html template at this location-->
 {{ template "footer.html" .}}

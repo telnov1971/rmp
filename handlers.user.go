@@ -13,7 +13,7 @@ import (
 func showLoginPage(c *gin.Context) {
 	// Call the render function with the name of the template to render
 	render(c, gin.H{
-		"title": "Вхож",
+		"title": "Вход",
 	}, "login.html")
 }
 

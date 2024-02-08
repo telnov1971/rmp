@@ -1,38 +1,17 @@
 <!--menu.html-->
 
-<table>
-    <tr>
-        <td>
-            <div class="navbar-header">
-                <a class="navbar-brand" href="/">
-                    <img src="/static/img/favicons/omel.png" width="64" height="64">
-                    Показания приборов учёта
-                </a>
-            </div>
-        </td>
-        <td>
-            <nav class="drop-down" aria-label="drop-down menu">
-                <input type="checkbox" id="menu" name="menu">
-                <label for="menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </label>
-                <div class="menu-content">
-                    {{ if .is_logged_in }}
-                    <!--Display this link only when the user is not logged in-->
-                    <li><a href="/u/register">Смена пароля</a></li>
-                    {{end}}
-                    {{ if not .is_logged_in }}
-                    <!--Display this link only when the user is not logged in-->
-                    <li><a href="/u/login">Вход</a></li>
-                    {{end}}
-                    {{ if .is_logged_in }}
-                    <!--Display this link only when the user is logged in-->
-                    <li><a href="/u/logout">Выход</a></li>
-                    {{end}}
-                </div>
-            </nav>
-        </td>
-    </tr>
-</table>
+<div class="header">
+    <div class="topnav" id="myTopnav">
+        <a href="http://omskelectro.ru"><img class="logo" src="/static/img/favicons/omel.png" style="width:25px; height:25px"></a>
+        <a href="/" class="active">Показания</a>
+        {{ if not .is_logged_in }}
+        <!--Display this link only when the user is not logged in-->
+        <a style="width:auto;" title="для зарегистрированных пользователей" href="/u/login">Войти</a>
+        {{end}}
+        {{ if .is_logged_in }}
+        <!--Display this link only when the user is logged in-->
+        <a href="/u/register">Смена пароля</a>
+        <a href="/u/logout">Выйти</a>
+        {{end}}
+    </div>
+</div>

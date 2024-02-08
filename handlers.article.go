@@ -79,9 +79,9 @@ func getIndications(c *gin.Context) {
 			}
 			switch sort {
 			case "", "idate":
-				sql3 = "ORDER BY i.i_date DESC, m.nom_pu ASC"
+				sql3 = "ORDER BY i.i_date DESC, m.nom_pu ASC, tz_sort"
 			case "number":
-				sql3 = "ORDER BY m.nom_pu ASC, i.i_date DESC"
+				sql3 = "ORDER BY m.nom_pu ASC, i.i_date DESC, tz_sort"
 			}
 			sql = sql1 + sql2 + sql3
 			rows, err := runner.db.Query(sql)

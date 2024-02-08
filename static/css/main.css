@@ -1,0 +1,443 @@
+/*-------  10-01-24 --- ppu -------------*/
+body {
+    margin: 0% auto;
+    font-family: Arial;
+    max-width: 1400px;
+    width: 100%;
+    box-shadow: 4px 9px 15px rgba(0, 0, 0, 0.12);
+    background: #eee;
+    padding: 1px 1px;
+}
+
+
+/*------ sticky --------*/
+table th {
+    position: -webkit-sticky;
+    position: -moz-sticky;
+    position: -ms-sticky;
+    position: -o-sticky;
+    position: sticky;
+    top: 0px;
+}
+
+#data {
+    border-bottom: 5px solid rgb(71, 131, 204);
+}
+
+/*---- sticky x ----------*/
+
+.container h1,
+h2,
+h3 {
+    display: block;
+    position: relative;
+    margin: 0px auto 30px;
+    color: white;
+    font-weight: 500;
+    text-align: center;
+    padding: 5px;
+    max-width: 400px;
+    background: #1e4f8b;
+    text-align: center;
+}
+
+.topnav {
+    overflow: hidden;
+    box-shadow: 1px 2px 7px rgba(0, 0, 0, 0.5);
+    background: rgb(65, 123, 195);
+    background: linear-gradient(163deg, rgba(65, 123, 195, 1) 0%, rgba(37, 89, 154, 1) 36%, rgba(21, 65, 117, 1) 64%, rgba(8, 47, 94, 1) 100%);
+}
+
+.topnav a {
+    float: left;
+    display: block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    cursor: pointer;
+}
+
+.active {
+    background-color: #0E3769;
+    color: white;
+
+}
+
+.topnav .icon {
+    display: none;
+}
+
+.dropdown {
+    float: left;
+    overflow: hidden;
+}
+
+.dropdown .dropbtn {
+    font-size: 17px;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 14px 16px;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-content a {
+    float: none;
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: left;
+}
+
+.topnav a:hover,
+.dropdown:hover .dropbtn {
+    background-color: #0e3769;
+    color: white;
+}
+
+.logo {
+    display: inline;
+    width: 38px !important;
+    height: 38px !important;
+    margin-bottom: -13px !important;
+    margin-top: -12px;
+}
+
+@media screen and (max-width: 600px) {
+
+    .topnav a:not(:first-child),
+    .dropdown .dropbtn {
+        display: none;
+    }
+
+    .topnav a.icon {
+        float: right;
+        display: block;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .topnav.responsive {
+        position: relative;
+    }
+
+    .topnav.responsive .icon {
+        position: absolute;
+        right: 0;
+        top: 0;
+    }
+
+    .topnav.responsive a {
+        float: none;
+        display: block;
+        text-align: left;
+    }
+
+    .topnav.responsive .dropdown {
+        float: none;
+    }
+
+    .topnav.responsive .dropdown-content {
+        position: relative;
+    }
+
+    .topnav.responsive .dropdown .dropbtn {
+        display: block;
+        width: 100%;
+        text-align: left;
+    }
+}
+
+/* ----- menu x ---------*/
+/*--------- user_data ---------*/
+
+div#user_data table {
+    position: relative;
+    margin-top: -30px;
+    margin-left: 20px;
+    margin-right: auto;
+    padding-bottom: 20px;
+}
+
+@media screen and (max-width: 600px) {
+    div#user_data table {
+        position: relative;
+        margin-top: -30px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-bottom: 20px;
+    }
+}
+
+#user_data tr td {
+    padding: 0 5px;
+    min-width: 50px;
+    max-width: 300px;
+    margin-bottom: 16px;
+}
+
+
+#user_data th,
+td {
+    padding: 5px 9px;
+    text-align: left;
+}
+
+#user_data th {
+    background: #4783CC;
+    color: white;
+}
+
+#user_data td {
+    background: #C7DDF8;
+    color: #103A6C;
+}
+
+/*---------- user_data x -------*/
+#data {
+    margin: 0px auto;
+    width: 100%;
+
+}
+
+#data table,
+th,
+td {
+    border: 1px solid grey;
+    padding: 2px;
+
+}
+
+#data th {
+    padding: 10px 3px;
+    color: #fff;
+}
+
+#data th {
+    background-color: #4783cc;
+    color: #fff;
+}
+
+#data table,
+th,
+td {
+    border: 0px solid black;
+    padding: 2px;
+    border-spacing: 1px;
+}
+
+
+#data tr:nth-child(even) {
+    background-color: #C7DDF8;
+    background-color: rgb(199, 221, 248, 0.93);
+
+
+}
+
+
+#data td:nth-child(even) {
+    background-color: #a1c6f2;
+    background-color: rgb(199, 221, 248, 0.4);
+
+}
+
+/*------- bg-danger ------------*/
+
+.bg-danger {
+    max-width: 500px;
+    width: 80%;
+    padding: 0px 0px;
+    padding-left: 11px;
+    margin: 16px;
+    display: inline-block;
+    border: none;
+    background-color: #ffdddd;
+    border-left: 6px solid #f44336;
+}
+
+/*------ bg-danger x -------------*/
+
+* {
+    box-sizing: border-box;
+}
+
+.bg-img {
+    /* Используемое изображение */
+    background-image: url("../img/ppu-bg-2.png");
+    min-height: 150px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    position: relative;
+}
+
+/* -------- h-container --------- */
+.h-container {
+    position: absolute;
+    right: 0;
+    margin: 20px;
+    max-width: 300px;
+    padding: 16px;
+    background-color: white;
+}
+
+/* -------------------- */
+input[type=text],
+input[type=password] {
+    width: 100%;
+    padding: 5px;
+    margin: 5px 0 5px 0;
+    border: none;
+    background: #f1f1f1;
+}
+
+input[type=text]:focus,
+input[type=password]:focus {
+    background-color: #ddd;
+    outline: none;
+}
+
+/* ----------------------------- */
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 10px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    opacity: 0.9;
+}
+
+.btn:hover {
+    opacity: 1;
+}
+
+/*----------------------------*/
+
+.container_tab table {
+    position: relative;
+    margin: 10px auto;
+    /* width: 100%; */
+    box-shadow: 4px 9px 15px rgba(0, 0, 0, 0.32);
+    /*  background: green; */
+}
+
+html {
+    /*   display:inline-table; */
+    position: relative;
+    margin: 0 auto;
+    max-width: 1100px;
+    width: 100%;
+    background: #eee;
+
+}
+
+.header {
+    position: relative;
+    margin: 0 auto;
+    max-width: 1400px;
+    width: 100%;
+    padding: 0px;
+}
+
+/*--------------*/
+.overflow {
+    overflow-x: auto;
+    overflow-y: auto;
+    width: 100%;
+    max-height: 70vh;
+    border: 1px solid white;
+}
+
+@media screen and (max-width: 600px) {
+    .overflow {
+        max-height: 65vh;
+    }
+}
+
+/* полоса прокрутки (скроллбар) */
+::-webkit-scrollbar {
+    width: 8px;
+    /* ширина для вертикального скролла */
+    height: 8px;
+    /* высота для горизонтального скролла */
+    background-color: #f1f1f1;
+}
+
+@media screen and (max-width: 600px) {
+
+    /* полоса прокрутки (скроллбар) */
+    ::-webkit-scrollbar {
+        width: 5px;
+        /* ширина для вертикального скролла */
+        height: 3px;
+        /* высота для горизонтального скролла */
+        background-color: #f1f1f1;
+    }
+}
+
+/* ползунок скроллбара */
+::-webkit-scrollbar-thumb {
+    background-color: #103b6d;
+    border-radius: 0px;
+    box-shadow: inset 1px 1px 10px #4783cc;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: #253861;
+}
+
+/* Стрелки */
+
+::-webkit-scrollbar-button:vertical:start:decrement {
+    background: linear-gradient(120deg, #23538d 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(240deg, #22528c 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(0deg, #22528c 30%, rgba(0, 0, 0, 0) 31%);
+    background-color: #e1e9f4;
+}
+
+::-webkit-scrollbar-button:vertical:end:increment {
+    background:
+        linear-gradient(300deg, #23538d 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(60deg, #23538d 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(180deg, #23538d 30%, rgba(0, 0, 0, 0) 31%);
+    background-color: #e1e9f4;
+}
+
+::-webkit-scrollbar-button:horizontal:start:decrement {
+    background:
+        linear-gradient(30deg, #02141a 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(150deg, #02141a 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(270deg, #02141a 30%, rgba(0, 0, 0, 0) 31%);
+    background-color: #f6f8f4;
+}
+
+::-webkit-scrollbar-button:horizontal:end:increment {
+    background:
+        linear-gradient(210deg, #02141a 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(330deg, #02141a 40%, rgba(0, 0, 0, 0) 41%),
+        linear-gradient(90deg, #02141a 30%, rgba(0, 0, 0, 0) 31%);
+    background-color: #f6f8f4;
+}
+
+html,
+body {
+    scrollbar-color: rgb(71, 131, 204) rgb(225, 233, 244);
+    /* «цвет ползунка» «цвет полосы скроллбара» */
+    scrollbar-width: auto thin none;
+    /* толщина */
+}
