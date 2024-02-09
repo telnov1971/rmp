@@ -35,12 +35,12 @@
                         <td><input type="date" name="periodend" min="2023-11-01" value="{{.periodend}}" /></td>
                     </tr>
                     <tr>
-                        <th>ПУ №</th>
+                        <th>ПУ</th>
                         <td>
-                            <select name="sort" id="sort">
-                                {{range .meter_devices}}
-                                <option value="{{.Number}}" {{if eq .Number .Sort}} selected {{end}}>{{.Number}}</option>
-                                {{end}}
+                            <select name="sort" id="sort-select" value="{{.meter_devices}}">
+                                <!-- {{range .meter_devices}} -->
+                                <option selected>ПУ № {{.meter_devices}}</option>
+                                <!-- {{end}} -->
                             </select>
                         </td>
                     </tr>
@@ -63,18 +63,18 @@
     <div class="container_tab">
         <table class="table table-striped" id="data" bgcolor="#f1f1f1">
             <thead>
-                <th scope="col">Дата показаний</th>
+                <th scope="col">№ ПУ</th>
+                <th scope="col">Показания ПУ</th>
                 <th scope="col">Тарифная зона</th>
-                <th scope="col">Показания</th>
-                <th scope="col">ПУ №</th>
+                <th scope="col">Дата показаний</th>
             </thead>
             <tbody>
                 {{range .table}}
                 <tr>
-                    <td>{{.I_date}}</td>
-                    <td>{{.Tz}}</td>
-                    <td>{{.Data}}</td>
                     <td>{{.Nom_pu}}</td>
+                    <td>{{.Data}}</td>
+                    <td>{{.Tz}}</td>
+                    <td>{{.I_date}}</td>
                 </tr>
                 {{end}}
             </tbody>

@@ -12,6 +12,13 @@ import (
 
 var periodstart, periodstend, sort string
 
+type DeviceSelect struct {
+	Sort   string
+	Number string
+}
+
+var meter_devices []DeviceSelect
+
 func filterIndexPage(c *gin.Context) {
 	periodstart = c.PostForm("periodstart")
 	periodstend = c.PostForm("periodend")
@@ -22,6 +29,7 @@ func filterIndexPage(c *gin.Context) {
 
 func showIndexPage(c *gin.Context) {
 
+	meter_devices = getMeterDevices(c)
 	getIndications(c)
 
 	// Call the render function with the name of the template to render
@@ -33,9 +41,75 @@ func showIndexPage(c *gin.Context) {
 		"table":           ipa.table,
 		"periodstart":     periodstart,
 		"periodend":       periodstend,
-		"sort":            sort,
+		"meter_devices":   meter_devices,
 	},
 		"index.html")
+}
+
+func getMeterDevices(c *gin.Context) []DeviceSelect {
+	var MDs []DeviceSelect
+	user, err := c.Cookie("username")
+	var meter_device string
+	if err == nil && user != "" {
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			user_id := getUserId(user)
+			rowMDs, err := runner.db.Query(fmt.Sprintf("SELECT m.nom_pu "+
+				"FROM meterdevice AS m WHERE usr_id =%d", user_id))
+			if err != nil {
+				http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+				return append(MDs, DeviceSelect{"", ""})
+			}
+			defer rowMDs.Close()
+			for rowMDs.Next() {
+				err := rowMDs.Scan(&meter_device)
+				if err != nil {
+					runner.logger.Println(err)
+					http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+					return append(MDs, DeviceSelect{"", ""})
+				}
+				if sort == "" {
+					sort = meter_device
+				}
+				MDs = append(MDs, DeviceSelect{sort, meter_device})
+			}
+		}
+	}
+	if MDs == nil {
+		return append(MDs, DeviceSelect{"", ""})
+	} else {
+		var sort_in bool
+		for _, v := range MDs {
+			if v.Number == sort {
+				sort_in = true
+			}
+		}
+		if !sort_in {
+			sort = MDs[0].Number
+		}
+		return MDs
+	}
+}
+
+func getDeviceId(nom_pu string) int64 {
+	rowDevices, err := runner.db.Query(fmt.Sprintf("Select id from meterdevice where nom_pu='%s'", nom_pu))
+	if err != nil {
+		runner.logger.Println(err.Error())
+		return 0
+	}
+	defer rowDevices.Close()
+
+	var id int64
+	for rowDevices.Next() {
+		err := rowDevices.Scan(&id)
+		if err != nil {
+			runner.logger.Println(err.Error())
+			return 0
+		} else {
+			return id
+		}
+	}
+	return 0
 }
 
 func getIndications(c *gin.Context) {
@@ -45,6 +119,7 @@ func getIndications(c *gin.Context) {
 		token, err := c.Cookie("token")
 		if err == nil && token != "" {
 			user_id := getUserId(user)
+			device_id := getDeviceId(sort)
 			rowUsr, err := runner.db.Query(fmt.Sprintf("SELECT u.personal_account, u.address, u.fio "+
 				"FROM usr AS u WHERE id =%d", user_id))
 			if err != nil {
@@ -66,7 +141,7 @@ func getIndications(c *gin.Context) {
 				"m.nom_pu, m.marka, m.mt, m.koef, m.los_per, m.ktp, "+
 				"i.data, i.tz, i.i_date, i.vid_en "+
 				"FROM indication AS i, meterdevice AS m "+
-				"WHERE i.device_id = m.id AND m.usr_id = %d ", user_id)
+				"WHERE i.device_id = %d AND i.device_id = m.id AND m.usr_id = %d ", device_id, user_id)
 			if periodstart != "" && periodstend != "" {
 				sql2 = fmt.Sprintf("AND i.i_date BETWEEN '%s' AND '%s' ", periodstart, periodstend)
 			} else {
@@ -77,12 +152,7 @@ func getIndications(c *gin.Context) {
 					sql2 = fmt.Sprintf("AND i.i_date < '%s' ", periodstend)
 				}
 			}
-			switch sort {
-			case "", "idate":
-				sql3 = "ORDER BY i.i_date DESC, m.nom_pu ASC, tz_sort"
-			case "number":
-				sql3 = "ORDER BY m.nom_pu ASC, i.i_date DESC, tz_sort"
-			}
+			sql3 = "ORDER BY i.i_date DESC, tz_sort"
 			sql = sql1 + sql2 + sql3
 			rows, err := runner.db.Query(sql)
 			if err != nil {
