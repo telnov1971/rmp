@@ -114,7 +114,10 @@ func main() {
 
 	// Connect and check the server version
 	var version string
-	runner.db.QueryRow("SELECT VERSION()").Scan(&version)
+	err = runner.db.QueryRow("SELECT VERSION()").Scan(&version)
+	if err != nil {
+		runner.logger.Println("Error in answer of query server version")
+	}
 	runner.logger.Println("Connected to:", version)
 
 	if config.loadonstart {
