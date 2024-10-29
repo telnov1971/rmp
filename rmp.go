@@ -116,9 +116,9 @@ func main() {
 	var version string
 	err = runner.db.QueryRow("SELECT VERSION()").Scan(&version)
 	if err != nil {
-		runner.logger.Println("Error in answer of query server version")
+		fmt.Println("Error in answer of query server version")
 	}
-	runner.logger.Println("Connected to:", version)
+	fmt.Println("Connected to:", version)
 
 	if config.loadonstart {
 		go firstLoad()
@@ -130,7 +130,7 @@ func main() {
 	initializeRoutes()
 
 	// Start serving the application
-	runner.logger.Println("Web server started", time.Now().Local())
+	fmt.Println("Web server started", time.Now().Local())
 	runner.logger.Fatal(router.Run(fmt.Sprintf(":%s", config.port_string)))
 }
 

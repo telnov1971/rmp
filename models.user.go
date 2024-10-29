@@ -49,7 +49,7 @@ func validateUser(user, pass string) bool {
 
 	rowUsr, err := runner.db.Query(fmt.Sprintf("Select password from usr where username='%s'", user))
 	if err != nil {
-		runner.logger.Println(err.Error())
+		fmt.Println(err.Error())
 		return false
 	}
 	defer rowUsr.Close()
@@ -58,11 +58,11 @@ func validateUser(user, pass string) bool {
 	for rowUsr.Next() {
 		err := rowUsr.Scan(&password)
 		if err != nil {
-			runner.logger.Println(err.Error())
+			fmt.Println(err.Error())
 			return false
 		}
 		if err := bcrypt.CompareHashAndPassword([]byte(password), []byte(pass)); err != nil {
-			runner.logger.Println(err.Error())
+			fmt.Println(err.Error())
 			return false
 		} else {
 			return true
@@ -74,7 +74,7 @@ func validateUser(user, pass string) bool {
 func getUserId(user string) int64 {
 	rowUsr, err := runner.db.Query(fmt.Sprintf("Select id from usr where username='%s'", user))
 	if err != nil {
-		runner.logger.Println(err.Error())
+		fmt.Println(err.Error())
 		return 0
 	}
 	defer rowUsr.Close()
@@ -83,7 +83,7 @@ func getUserId(user string) int64 {
 	for rowUsr.Next() {
 		err := rowUsr.Scan(&id)
 		if err != nil {
-			runner.logger.Println(err.Error())
+			fmt.Println(err.Error())
 			return 0
 		} else {
 			return id

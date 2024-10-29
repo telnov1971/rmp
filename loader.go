@@ -28,7 +28,7 @@ func loadAll() {
 	// Получаем текущую локальную временную зону
 	localZone, err := time.LoadLocation("Local")
 	if err != nil {
-		runner.logger.Println("Ошибка при загрузке локальной временной зоны:", err)
+		fmt.Println("Ошибка при загрузке локальной временной зоны:", err)
 		return
 	}
 
@@ -36,11 +36,11 @@ func loadAll() {
 		// Парсим время из расписания
 		targetTime, err := time.ParseInLocation("15:04", t, localZone)
 		if err != nil {
-			runner.logger.Println("Ошибка при парсинге времени:", err)
+			fmt.Println("Ошибка при парсинге времени:", err)
 			return
 		}
 		if !tasks[i] {
-			runner.logger.Println("Запуск задачи на время", i, targetTime.Hour(), targetTime.Minute())
+			fmt.Println("Запуск задачи на время", i, targetTime.Hour(), targetTime.Minute())
 			go task(targetTime, i)
 		}
 	}
@@ -79,13 +79,33 @@ func task(t time.Time, i int) {
 }
 
 func loadUsr() {
+	/* 	lkf_lch.csv  - таблица лицевых счетов
+	   	LICH_GP		CHAR(12) 	Номер лицевого счета ГП
+	   	ADRES 		CHAR(50) 	Адрес абонента
+	   	FIO_GP 		CHAR(45) 	ФИО абонента ГП
+	   	TEL 		CHAR(23) 	Телефоны  абонента
+	   	LICH_ID 	NUMBER(7) 	Код лицевого счета абонента
+	*/
+	/* 	CREATE TABLE `usr` (
+	   		`id` 				BIGINT(20) NOT NULL AUTO_INCREMENT,
+	   		`username` 			VARCHAR(55) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	   		`password` 			VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	   		`personal_account` 	VARCHAR(12) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	   		`address` 			VARCHAR(100) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	   		`fio` 				VARCHAR(100) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	   		`contact` 			VARCHAR(25) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+	   		`lich_id` 			BIGINT(8) NULL DEFAULT NULL,
+	   		`visit_date` 		DATETIME(6) NULL DEFAULT NULL,
+	   		PRIMARY KEY (`id`) USING BTREE
+	   	)
+	*/
 	timeStartDBload := time.Now()
 	runner.logger.Printf("Start user load: %s", timeStartDBload.Local())
 
 	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.user_string)
 	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 	}
 	defer f.Close()
 
@@ -97,7 +117,7 @@ func loadUsr() {
 	reader := decoder.Reader(f)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 		panic(err)
 	}
 
@@ -112,11 +132,14 @@ func loadUsr() {
 			break
 		}
 		if err != nil {
-			runner.logger.Println(err)
+			fmt.Println(err)
 		}
 
 		var id uint64
 		i, err := strconv.ParseInt(record[4], 10, 64)
+		if i == 96012555658 {
+			fmt.Println("Trable user")
+		}
 		if err == nil {
 			sql_find_id := fmt.Sprintf("select `id` from `usr` where `lich_id`=%d", i)
 			err2 := runner.db.QueryRow(sql_find_id).Scan(&id)
@@ -133,16 +156,16 @@ func loadUsr() {
 				if err == nil {
 					pass, err := bcrypt.GenerateFromPassword([]byte(record[0]), bcrypt.DefaultCost)
 					if err != nil {
-						runner.logger.Println(err)
+						fmt.Println(err)
 					}
 					_, err = stmt.Exec(record[0], pass, record[0], record[1], record[2], record[3], i)
 					if err != nil {
-						runner.logger.Println(err)
+						fmt.Println(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					panic(err)
 				}
 			} else {
@@ -154,33 +177,27 @@ func loadUsr() {
 
 				countUpdate += 1
 				sql_str = fmt.Sprint("UPDATE usr " +
-					"SET username=?, password=?, personal_account=?, address=?, fio=?, contact=?, lich_id=? " +
+					"SET personal_account=?, address=?, fio=?, contact=?, lich_id=? " +
 					"WHERE id=?;")
 				stmt, err := runner.db.Prepare(sql_str)
 				if err == nil {
-					var password string
-					sql_pass := fmt.Sprintf("SELECT password FROM usr WHERE id=%d", i)
-					err := runner.db.QueryRow(sql_pass).Scan(&password)
+					_, err = stmt.Exec(record[0], record[1], record[2], record[3], record[4], id)
 					if err != nil {
-						runner.logger.Println(err)
-					}
-					_, err = stmt.Exec(record[0], password, record[0], record[1], record[2], record[3], i)
-					if err != nil {
-						runner.logger.Println(err)
+						fmt.Println(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					panic(err)
 				}
 			}
 		}
 	}
-	runner.logger.Println("Users insert: ", countInsert)
-	runner.logger.Println("Users update: ", countUpdate)
-	runner.logger.Println(time.Until(timeStartDBload))
-	runner.logger.Println("Users load")
+	fmt.Println("Users insert: ", countInsert)
+	fmt.Println("Users update: ", countUpdate)
+	fmt.Println(time.Until(timeStartDBload))
+	fmt.Println("Users load")
 }
 
 func loadMeterDevece() {
@@ -199,7 +216,7 @@ func loadMeterDevece() {
 	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.meter_string)
 	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 	}
 	defer f.Close()
 
@@ -211,7 +228,7 @@ func loadMeterDevece() {
 	reader := decoder.Reader(f)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 		panic(err)
 	}
 
@@ -225,7 +242,7 @@ func loadMeterDevece() {
 			break
 		}
 		if err != nil {
-			runner.logger.Println(err)
+			fmt.Println(err)
 		}
 
 		var usr_id, meter_id uint64
@@ -254,20 +271,20 @@ func loadMeterDevece() {
 				if err == nil {
 					_, err = stmt.Exec(record[0], record[1], mt, koef, losPer, record[5], record[6], meter_id, usr_id)
 					if err != nil {
-						runner.logger.Println(err)
+						fmt.Println(err)
 						panic(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					panic(err)
 				}
 			}
 		}
 	}
-	runner.logger.Println("Meter devices insert: ", countInsert)
-	runner.logger.Println(time.Until(timeStartDBload))
-	runner.logger.Println("Meter devices load")
+	fmt.Println("Meter devices insert: ", countInsert)
+	fmt.Println(time.Until(timeStartDBload))
+	fmt.Println("Meter devices load")
 }
 
 func loadIndication() {
@@ -288,7 +305,7 @@ func loadIndication() {
 	file_string := fmt.Sprintf("%s\\%s", config.path_string, config.indication_string)
 	f, err := os.OpenFile(file_string, os.O_RDONLY, 0755)
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 	}
 	defer f.Close()
 
@@ -300,7 +317,7 @@ func loadIndication() {
 	reader := decoder.Reader(f)
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 		panic(err)
 	}
 
@@ -314,7 +331,7 @@ func loadIndication() {
 			break
 		}
 		if err != nil {
-			runner.logger.Println(err)
+			fmt.Println(err)
 		}
 
 		var meter_id, id uint64
@@ -362,21 +379,21 @@ func loadIndication() {
 					if err == nil {
 						_, err = stmt.Exec(data, record[1], tz_sort, i_date, record[3], id)
 						if err != nil {
-							runner.logger.Println(err)
+							fmt.Println(err)
 							panic(err)
 						}
 						stmt.Close()
 					} else {
-						runner.logger.Println(err)
+						fmt.Println(err)
 						panic(err)
 					}
 				}
 			}
 		}
 	}
-	runner.logger.Println("Indications insert: ", countInsert)
-	runner.logger.Println(time.Until(timeStartDBload))
-	runner.logger.Println("Indications load")
+	fmt.Println("Indications insert: ", countInsert)
+	fmt.Println(time.Until(timeStartDBload))
+	fmt.Println("Indications load")
 }
 
 func isOld(f *os.File, s string) bool {
@@ -384,7 +401,7 @@ func isOld(f *os.File, s string) bool {
 	var date_usr, date_mtr, date_ind, datebase time.Time
 	stat, err := f.Stat()
 	if err != nil {
-		runner.logger.Println(err)
+		fmt.Println(err)
 	}
 	datefile := stat.ModTime()
 
@@ -412,21 +429,21 @@ func isOld(f *os.File, s string) bool {
 			case "usr":
 				err := date.Scan(&date_usr)
 				if err != nil {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					return true
 				}
 				datebase = date_usr
 			case "mtr":
 				err := date.Scan(&date_mtr)
 				if err != nil {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					return true
 				}
 				datebase = date_mtr
 			case "ind":
 				err := date.Scan(&date_ind)
 				if err != nil {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					return true
 				}
 				datebase = date_ind
@@ -436,11 +453,11 @@ func isOld(f *os.File, s string) bool {
 				if err == nil {
 					_, err = stmt.Exec(datefile)
 					if err != nil {
-						runner.logger.Println(err)
+						fmt.Println(err)
 					}
 					stmt.Close()
 				} else {
-					runner.logger.Println(err)
+					fmt.Println(err)
 				}
 				return false
 			} else {

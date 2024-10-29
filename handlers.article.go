@@ -64,7 +64,7 @@ func getMeterDevices(c *gin.Context) []DeviceSelect {
 			for rowMDs.Next() {
 				err := rowMDs.Scan(&meter_device)
 				if err != nil {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 					return append(MDs, DeviceSelect{"", ""})
 				}
@@ -94,7 +94,7 @@ func getMeterDevices(c *gin.Context) []DeviceSelect {
 func getDeviceId(nom_pu string) int64 {
 	rowDevices, err := runner.db.Query(fmt.Sprintf("Select id from meterdevice where nom_pu='%s'", nom_pu))
 	if err != nil {
-		runner.logger.Println(err.Error())
+		fmt.Println(err.Error())
 		return 0
 	}
 	defer rowDevices.Close()
@@ -103,7 +103,7 @@ func getDeviceId(nom_pu string) int64 {
 	for rowDevices.Next() {
 		err := rowDevices.Scan(&id)
 		if err != nil {
-			runner.logger.Println(err.Error())
+			fmt.Println(err.Error())
 			return 0
 		} else {
 			return id
@@ -131,7 +131,7 @@ func getIndications(c *gin.Context) {
 			for rowUsr.Next() {
 				err := rowUsr.Scan(&ipa.personal_account, &ipa.address, &ipa.fio)
 				if err != nil {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -168,7 +168,7 @@ func getIndications(c *gin.Context) {
 				err := rows.Scan(&ir.Nom_pu, &ir.Marka, &ir.Mt, &ir.Koef, &ir.Los_per, &ir.Ktp,
 					&ir.Data, &ir.Tz, &i_date_time, &ir.Vid_en)
 				if err != nil {
-					runner.logger.Println(err)
+					fmt.Println(err)
 					http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 					return
 				}
